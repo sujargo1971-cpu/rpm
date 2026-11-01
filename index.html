@@ -103,6 +103,10 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 .tbl .acts button{padding:4px 10px;font-size:13px;margin-right:4px}
 .pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600}
 .pill.on{background:#dcfce7;color:#166534}.pill.off{background:#fee2e2;color:#991b1b}
+.pw{position:relative}
+.pw input{padding-right:44px}
+.pw .eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:transparent;color:var(--mut);padding:6px 8px;border-radius:8px;display:flex;align-items:center}
+.pw .eye:hover{background:#eef3f2;color:var(--g)}
 </style>
 </head>
 <body>
@@ -335,7 +339,7 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 /* ===================== KONFIGURASI ===================== */
 // Tempel URL Web App Apps Script di sini agar semua perangkat otomatis terhubung ke database.
 // Alternatif: admin mengisinya di Halaman Admin > Database & Sinkronisasi.
-const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbykA1aqG3rspyjsMwmOHTfjSJeWf_C-hzJcAeSM5Bs_FqneQ8e3C1mp5cP_v4C9-_fI/exec';
+const DEFAULT_URL = '';
 
 /* ===================== UTIL ===================== */
 const $ = s => document.querySelector(s);
@@ -887,6 +891,20 @@ function exportDoc(){
 }
 
 /* ===================== INISIALISASI ===================== */
+/* ===================== IKON MATA (lihat kata sandi) ===================== */
+const EYE_ON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+function addEyes(){
+  $$('input[type=password]').forEach(inp=>{
+    if(inp.parentNode.classList.contains('pw'))return;
+    const w=document.createElement('div');w.className='pw';inp.parentNode.insertBefore(w,inp);w.appendChild(inp);
+    const b=document.createElement('button');b.type='button';b.className='eye';b.title='Tampilkan kata sandi';b.setAttribute('aria-label','Tampilkan kata sandi');b.innerHTML=EYE_ON;
+    b.onclick=()=>{const show=inp.type==='password';inp.type=show?'text':'password';b.innerHTML=show?EYE_OFF:EYE_ON;b.title=show?'Sembunyikan kata sandi':'Tampilkan kata sandi';inp.focus()};
+    w.appendChild(b);
+  });
+}
+addEyes();
+
 (function(){
   try{const q=new URLSearchParams(location.search).get('api');if(q&&/^https:\/\//.test(q)){API=q;localStorage.setItem('rpm_url',q);history.replaceState(null,'',location.pathname)}}catch(e){}
   loadLogo();
