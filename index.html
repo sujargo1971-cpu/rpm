@@ -107,6 +107,13 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 .pw input{padding-right:44px}
 .pw .eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:transparent;color:var(--mut);padding:6px 8px;border-radius:8px;display:flex;align-items:center}
 .pw .eye:hover{background:#eef3f2;color:var(--g)}
+.keybtn{position:absolute;top:14px;right:14px;width:40px;height:40px;padding:0;border-radius:50%;background:#f1f5f9;color:var(--mut);display:flex;align-items:center;justify-content:center}
+.keybtn:hover{background:var(--gl);color:var(--g)}
+.keybtn.on{background:var(--g);color:#fff}
+.logincard{position:relative}
+.modebadge{display:none;align-items:center;gap:6px;margin-bottom:12px;background:var(--gl);color:var(--g);font-size:13px;font-weight:600;padding:5px 12px;border-radius:99px;margin-top:0}
+.modebadge.on{display:inline-flex}
+.logintitle{margin:18px 0 10px;font-size:15px;letter-spacing:2px;color:#334155;font-weight:700}
 </style>
 </head>
 <body>
@@ -115,12 +122,12 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 <div id="v-login" class="view on">
  <div class="loginwrap">
   <div class="card logincard">
+   <button class="keybtn" id="keyBtn" onclick="setRole(ROLE==='admin'?'guru':'admin')" title="Masuk sebagai Admin" aria-label="Masuk sebagai Admin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="m16 7 3 3"/><path d="m14 9 2 2"/></svg></button>
    <div class="logo"><span id="loginLogoEmoji">🌱</span><img id="loginLogo" alt="Logo sekolah" style="display:none"></div>
    <h1 style="font-size:22px;color:var(--g)">RENCANA PEMBELAJARAN MENDALAM</h1>
    <p class="hint" style="margin:4px 0 0">Susun RPP berkesadaran, bermakna, dan menggembirakan.</p>
-   <div class="f" style="margin-top:18px"><label>Masuk sebagai</label>
-    <div class="tabs" style="margin:0"><button id="rGuru" class="on" onclick="setRole('guru')">👩‍🏫 Guru</button><button id="rAdmin" onclick="setRole('admin')">🛠 Admin</button></div>
-   </div>
+   <div class="logintitle">MASUK</div>
+   <span class="modebadge" id="admBadge">🔑 Mode Admin</span>
    <div class="f"><label>Username</label><input id="lUser" autocomplete="username" placeholder="Username dari admin sekolah"></div>
    <div class="f"><label>Kata Sandi</label><input id="lPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
    <button style="width:100%" id="btnAuth" onclick="doAuth()">Masuk</button>
@@ -218,7 +225,8 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
      <select data-k="idt.kelas"><option value="1">I (Fase A)</option><option value="2">II (Fase A)</option><option value="3">III (Fase B)</option><option value="4">IV (Fase B)</option><option value="5">V (Fase C)</option><option value="6">VI (Fase C)</option></select></div>
     <div><label>Semester</label><select data-k="idt.semester"><option>Ganjil</option><option>Genap</option></select></div>
     <div><label>Tahun Ajaran</label><input data-k="idt.tahun" placeholder="2026/2027"></div>
-    <div><label>Mata Pelajaran</label><select data-k="idt.mapel" id="selMapel"></select></div>
+    <div><label>Mata Pelajaran</label><select data-k="idt.mapel" id="selMapel" onchange="mapelUI()"></select></div>
+    <div id="boxMapelLain" style="display:none"><label>Nama Mata Pelajaran (Lainnya)</label><input data-k="idt.mapelLain" placeholder="mis. Bahasa Daerah / Muatan Lokal"></div>
     <div class="full"><label>Tema / Subtema</label><input data-k="idt.tema" placeholder="mis. Keberagaman Budaya di Sekitarku"></div>
     <div><label>Alokasi Waktu</label><input data-k="idt.alokasi" placeholder="mis. 4 pertemuan x 2 JP (2 x 35 menit)"></div>
     <div><label>Jumlah Pertemuan (hari)</label><input type="number" min="1" max="12" data-k="idt.pertemuan"></div>
@@ -249,7 +257,7 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
   <table style="border:none;border-bottom:3px double #000;margin:0 0 12px"><tr><td style="border:none;width:90px;text-align:center;vertical-align:middle"><img id="docLogo" alt="Logo" width="76" height="76" style="width:76px;height:76px;object-fit:contain;display:none"></td><td style="border:none;text-align:center;vertical-align:middle"><h1>RENCANA PELAKSANAAN PEMBELAJARAN</h1><div class="sub" style="margin:2px 0 2px">PEMBELAJARAN MENDALAM</div><div style="font-weight:bold" data-v="idt.satuan"></div></td><td style="border:none;width:90px"></td></tr></table>
   <table>
    <tr><td class="lab">Satuan Pendidikan</td><td data-v="idt.satuan"></td><td class="lab">Kelas / Semester</td><td><span data-v="kelasRomawi"></span> / <span data-v="idt.semester"></span></td></tr>
-   <tr><td class="lab">Mata Pelajaran</td><td data-v="idt.mapel"></td><td class="lab">Tahun Ajaran</td><td data-v="idt.tahun"></td></tr>
+   <tr><td class="lab">Mata Pelajaran</td><td data-v="mapelNama"></td><td class="lab">Tahun Ajaran</td><td data-v="idt.tahun"></td></tr>
    <tr><td class="lab">Tema / Subtema</td><td data-v="idt.tema"></td><td class="lab">Alokasi Waktu</td><td data-v="idt.alokasi"></td></tr>
    <tr><td class="lab">Nama Guru</td><td data-v="idt.guru"></td><td class="lab">NIP Guru</td><td data-v="idt.nipGuru"></td></tr>
   </table>
@@ -339,7 +347,7 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 /* ===================== KONFIGURASI ===================== */
 // Tempel URL Web App Apps Script di sini agar semua perangkat otomatis terhubung ke database.
 // Alternatif: admin mengisinya di Halaman Admin > Database & Sinkronisasi.
-const DEFAULT_URL = '';
+const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbykA1aqG3rspyjsMwmOHTfjSJeWf_C-hzJcAeSM5Bs_FqneQ8e3C1mp5cP_v4C9-_fI/exec';
 
 /* ===================== UTIL ===================== */
 const $ = s => document.querySelector(s);
@@ -465,9 +473,11 @@ async function clearLogo(){
 
 /* ===================== LOGIN ===================== */
 function setRole(r){
-  ROLE=r;$('#rGuru').classList.toggle('on',r==='guru');$('#rAdmin').classList.toggle('on',r==='admin');
-  $('#lUser').placeholder=r==='admin'?'Username admin':'Username dari admin sekolah';
-  $('#lInfo').style.display=r==='guru'?'':'none';$('#lErr').textContent='';
+  ROLE=r;const ad=r==='admin';
+  $('#keyBtn').classList.toggle('on',ad);$('#keyBtn').title=ad?'Kembali ke login guru':'Masuk sebagai Admin';
+  $('#admBadge').classList.toggle('on',ad);
+  $('#lUser').placeholder=ad?'Username admin':'Username dari admin sekolah';
+  $('#lInfo').style.display=ad?'none':'';$('#lErr').textContent='';
 }
 async function doAuth(){
   const username=$('#lUser').value.trim().toLowerCase(),pass=$('#lPass').value;
@@ -600,7 +610,7 @@ async function pushLocal(){
 /* ===================== DATA ===================== */
 function newRPP(){
   return {uid:'rpm'+Date.now().toString(36),
-    idt:{satuan:'',guru:USER?USER.name:'',nipGuru:'',kepsek:'',nipKepsek:'',kelas:'4',semester:'Ganjil',tahun:'',mapel:'IPAS',tema:'',alokasi:'',pertemuan:'3'},
+    idt:{satuan:'',guru:USER?USER.name:'',nipGuru:'',kepsek:'',nipKepsek:'',kelas:'4',semester:'Ganjil',tahun:'',mapel:'IPAS',tema:'',alokasi:'',pertemuan:'3',mapelLain:''},
     ident:{peserta:'',materi:'',dpl:[]},
     desain:{cp:'',lintas:'',tp:'',topik:'',pedagogis:'',kemitraan:'',lingkungan:'',digital:''},
     awal:'',inti:{mem:[],apl:[],ref:[]},penutup:'',
@@ -626,7 +636,7 @@ document.addEventListener('change',e=>{
 });
 function refreshV(){
   $$('[data-v]').forEach(el=>{
-    const k=el.dataset.v;el.textContent=k==='kelasRomawi'?ROM[+S.idt.kelas]||'':(get(S,k)||'');
+    const k=el.dataset.v;el.textContent=k==='kelasRomawi'?ROM[+S.idt.kelas]||'':k==='mapelNama'?mpNama():(get(S,k)||'');
   });
 }
 const DPL=[[1,'Keimanan dan Ketakwaan terhadap Tuhan YME'],[2,'Kewargaan'],[3,'Penalaran Kritis'],[4,'Kreativitas'],[5,'Kolaborasi'],[6,'Kemandirian'],[7,'Kesehatan'],[8,'Komunikasi']];
@@ -655,7 +665,7 @@ function fillAll(){
   renderDpl();
   $$('[data-k]').forEach(el=>{const v=get(S,el.dataset.k);el.value=v==null?'':v});
   $$('textarea').forEach(autosize);
-  refreshV();
+  mapelUI();refreshV();
 }
 
 /* ===================== DATA REFERENSI ===================== */
@@ -667,6 +677,8 @@ const MP={
 'PJOK':{v1:'mendemonstrasikan',v2:'mempraktikkan',prod:'rangkaian gerak/permainan dan lembar kebugaran',ped:'Pembelajaran Berbasis Permainan (Game Based Learning) dengan pendekatan bermain, mencoba, dan bergerak bersama',pk:'Game Based Learning',dpl:[5,6,7,8],ld:'IPAS (tubuh dan kesehatan), Matematika (hitungan skor/waktu), Seni (gerak ritmik), Pendidikan Pancasila (sportivitas)'},
 'Seni Budaya':{v1:'mengeksplorasi',v2:'menciptakan',prod:'karya seni (rupa/musik/tari/teater) dan pameran/pentas mini',ped:'Pembelajaran Berbasis Proyek (PjBL) dengan tahapan eksplorasi, perancangan, berkarya, dan menampilkan',pk:'Project Based Learning',dpl:[1,4,5,8],ld:'IPAS (budaya daerah), Bahasa Indonesia (menceritakan makna karya), Matematika (pola/simetri), Pendidikan Pancasila (apresiasi keberagaman)'},
 'Bahasa Inggris':{v1:'mengenali',v2:'menggunakan',prod:'kartu kosakata, dialog sederhana, dan presentasi singkat',ped:'Pembelajaran Berbasis Permainan (Game Based Learning) dan komunikatif melalui lagu, dialog, serta stasiun belajar',pk:'Game Based Learning',dpl:[4,5,6,8],ld:'Bahasa Indonesia (perbandingan kosakata), IPAS (kosakata lingkungan), Seni (lagu dan gambar)'},
+'Pendidikan Agama dan Budi Pekerti':{v1:'memahami',v2:'mengamalkan',prod:'jurnal pengamalan nilai, poster/karya, dan praktik ibadah atau akhlak sesuai agama murid',ped:'Pembelajaran Berbasis Pengalaman (Experiential Learning), keteladanan, dan diskusi nilai dengan pembiasaan sehari-hari',pk:'Experiential Learning',dpl:[1,2,5,6],ld:'Pendidikan Pancasila (akhlak dan toleransi), Bahasa Indonesia (bercerita kisah teladan), Seni (kaligrafi/lagu religi/karya), IPAS (ciptaan Tuhan dan lingkungan)'},
+'Koding dan Kecerdasan Artifisial (KKA)':{v1:'mengenali',v2:'merancang dan menerapkan',prod:'rancangan algoritma/program sederhana (unplugged atau Scratch) dan proyek pemecahan masalah',ped:'Pembelajaran Berbasis Proyek (PjBL) dan pemecahan masalah dengan berpikir komputasional (dekomposisi, pengenalan pola, abstraksi, algoritma), diawali kegiatan tanpa gawai (unplugged)',pk:'Project Based Learning',dpl:[3,4,5,6],ld:'Matematika (pola, urutan, logika), IPAS (pemecahan masalah di lingkungan), Bahasa Indonesia (menjelaskan algoritma), Seni (animasi/desain), Pendidikan Pancasila (etika digital)'},
 'Lainnya':{v1:'memahami',v2:'menerapkan',prod:'karya/produk sederhana',ped:'Pembelajaran Berbasis Proyek (PjBL) dan Inkuiri-Penemuan dengan diferensiasi konten, proses, dan produk',pk:'Project Based Learning',dpl:[3,5,6,8],ld:'Bahasa Indonesia, IPAS, Seni, Pendidikan Pancasila (sesuaikan)'}
 };
 const CP={
@@ -677,11 +689,15 @@ const CP={
 'PJOK':{A:'Murid mempraktikkan gerak dasar lokomotor, nonlokomotor, dan manipulatif, bermain dengan aturan sederhana, serta membiasakan perilaku hidup sehat dan aman.',B:'Murid mempraktikkan variasi gerak dasar dalam permainan, aktivitas ritmik, dan senam, menerapkan kebugaran jasmani, serta pola hidup sehat dan kebersihan diri.',C:'Murid mempraktikkan kombinasi gerak dalam permainan dan olahraga, aktivitas ritmik, dan aktivitas air atau senam, merancang program kebugaran sederhana, serta menerapkan sportivitas dan hidup sehat.'},
 'Seni Budaya':{A:'Murid mengenal dan bereksplorasi dengan unsur seni (rupa, musik, tari, teater) serta mengekspresikan perasaan dan gagasan melalui karya sederhana.',B:'Murid menerapkan unsur dan prinsip seni dalam berkarya serta menampilkan atau mengomunikasikan karya seni dengan percaya diri, termasuk mengenal seni budaya daerah.',C:'Murid berkreasi dengan memadukan unsur dan prinsip seni, merancang dan menampilkan karya seni, menceritakan makna karya, serta menghargai seni budaya Nusantara.'},
 'Bahasa Inggris':{A:'Murid mampu menyimak, merespons, dan mengungkapkan kosakata dan ungkapan sederhana tentang diri, keluarga, dan benda sekitar dalam bahasa Inggris.',B:'Murid mampu memahami dan menggunakan kalimat sederhana untuk berkomunikasi tentang rutinitas, lingkungan, dan benda sekitar secara lisan maupun tulisan.',C:'Murid mampu memahami dan menyampaikan informasi, pengalaman, dan pendapat sederhana dalam teks lisan, tulis, dan visual dalam konteks sehari-hari.'},
+'Pendidikan Agama dan Budi Pekerti':{A:'Murid mengenal Tuhan dan ciptaan-Nya, mengenal pokok-pokok ajaran dan kitab suci agamanya, membiasakan ibadah sederhana, serta berakhlak baik dalam kehidupan sehari-hari di rumah dan sekolah. (Sesuaikan dengan CP agama yang dianut murid.)',B:'Murid memahami dan mulai mengamalkan pokok-pokok ajaran agamanya, membaca/memahami kitab suci, mempraktikkan ibadah, meneladani tokoh agama, serta menunjukkan akhlak mulia dan toleransi terhadap teman yang berbeda. (Sesuaikan dengan CP agama yang dianut murid.)',C:'Murid menganalisis dan mengamalkan ajaran agamanya, memahami kitab suci, ibadah, sejarah dan keteladanan tokoh, serta menerapkan akhlak mulia, toleransi, dan kepedulian sosial dalam kehidupan bermasyarakat dan berbangsa. (Sesuaikan dengan CP agama yang dianut murid.)'},
+'Koding dan Kecerdasan Artifisial (KKA)':{A:'Murid mengenal teknologi di sekitarnya, mengikuti urutan langkah sederhana dalam menyelesaikan tugas (kegiatan tanpa gawai), serta menggunakan perangkat digital dengan aman di bawah bimbingan. (Mata pelajaran pilihan; periksa kembali ketentuan fase/kelas dan CP resmi.)',B:'Murid menerapkan berpikir komputasional dasar (mengurai masalah, mengenali pola, menyusun urutan langkah/algoritma sederhana), mengenal data dan peran teknologi, serta menggunakan perangkat digital secara bertanggung jawab. (Mata pelajaran pilihan; periksa kembali ketentuan fase/kelas dan CP resmi.)',C:'Murid menerapkan berpikir komputasional untuk menyelesaikan masalah, membuat program sederhana dengan struktur urutan, pengulangan, dan percabangan, memahami cara kerja dan pemanfaatan kecerdasan artifisial secara kritis, serta menerapkan etika dan keamanan digital. (Mata pelajaran pilihan; periksa kembali ketentuan fase/kelas dan CP resmi.)'},
 'Lainnya':{A:'(Isi Capaian Pembelajaran fase A sesuai dokumen CP resmi mata pelajaran.)',B:'(Isi Capaian Pembelajaran fase B sesuai dokumen CP resmi mata pelajaran.)',C:'(Isi Capaian Pembelajaran fase C sesuai dokumen CP resmi mata pelajaran.)'}
 };
 $('#selMapel').innerHTML=Object.keys(MP).map(m=>`<option>${m}</option>`).join('');
 
 const mp=()=>MP[S.idt.mapel]||MP.Lainnya;
+const mpNama=()=>S.idt.mapel==='Lainnya'?((S.idt.mapelLain||'').trim()||'Lainnya'):S.idt.mapel;
+function mapelUI(){const b=$('#boxMapelLain');if(b&&S)b.style.display=S.idt.mapel==='Lainnya'?'':'none'}
 const fase=()=>{const k=+S.idt.kelas;return k<=2?'A':k<=4?'B':'C'};
 const T=()=>S.idt.tema||'[tema/subtema]';
 function has(v){return v&&String(v).trim().length>0}
@@ -701,7 +717,7 @@ function genIdent(force){
   if(!need())return;if(!okOver(['ident.peserta','ident.materi'],force))return;
   const k=+S.idt.kelas,f=fase(),m=mp();
   S.ident.peserta=`Murid Kelas ${ROM[k]} ${S.idt.satuan||'[satuan pendidikan]'}, Semester ${S.idt.semester}, Tahun Ajaran ${S.idt.tahun||'[tahun ajaran]'} (Fase ${f}), pada umumnya berusia ${k+5}–${k+6} tahun. Murid aktif bergerak, senang bermain dan bekerja berkelompok, serta belajar lebih baik melalui benda konkret dan pengalaman langsung. Kesiapan belajar, minat, dan gaya belajar (visual, auditori, kinestetik) beragam sehingga pembelajaran dirancang berdiferensiasi. [Tambahkan hasil asesmen diagnostik / catatan khusus murid di sini.]`;
-  S.ident.materi=`Mata Pelajaran: ${S.idt.mapel}. Tema/Subtema: ${T()}. Materi pokok: konsep, keterampilan, dan nilai yang berkaitan dengan ${T()}, dipelajari selama ${nP()} pertemuan (${S.idt.alokasi||'alokasi waktu belum diisi'}).`;
+  S.ident.materi=`Mata Pelajaran: ${mpNama()}. Tema/Subtema: ${T()}. Materi pokok: konsep, keterampilan, dan nilai yang berkaitan dengan ${T()}, dipelajari selama ${nP()} pertemuan (${S.idt.alokasi||'alokasi waktu belum diisi'}).`;
   S.ident.dpl=[...m.dpl];
   done('Identifikasi terisi. Silakan edit bila perlu.');
 }
@@ -709,7 +725,7 @@ function tpList(){return (S.desain.tp||'').split('\n').map(x=>x.replace(/^\s*\d+
 function genDesain(force){
   if(!need())return;if(!okOver(['desain.cp','desain.tp','desain.topik'],force))return;
   const m=mp(),t=T(),f=fase();
-  S.desain.cp=`Fase ${f} — ${S.idt.mapel}: ${CP[S.idt.mapel]?CP[S.idt.mapel][f]:CP.Lainnya[f]}`;
+  S.desain.cp=`Fase ${f} — ${mpNama()}: ${CP[S.idt.mapel]?CP[S.idt.mapel][f]:CP.Lainnya[f]}`;
   S.desain.lintas=m.ld+'.';
   S.desain.tp=[
    `1. Melalui pengamatan, bercerita, dan diskusi, murid dapat ${m.v1} konsep utama tentang ${t} dengan benar dan menyebutkan contohnya dalam kehidupan sehari-hari.`,
@@ -796,7 +812,7 @@ function genSoal(force){
   const L=(a)=>a.join('\n');
   S.lamp.soal=L([
 `SOAL SUMATIF AKHIR TUJUAN PEMBELAJARAN`,
-`Mata Pelajaran : ${S.idt.mapel}          Kelas/Semester : ${ROM[+S.idt.kelas]}/${S.idt.semester}          Tahun Ajaran : ${S.idt.tahun||'........'}`,
+`Mata Pelajaran : ${mpNama()}          Kelas/Semester : ${ROM[+S.idt.kelas]}/${S.idt.semester}          Tahun Ajaran : ${S.idt.tahun||'........'}`,
 `Tema/Subtema : ${t}          Waktu : 60 menit`,
 `Nama : ..........................................   Nomor Absen : ......   Hari/Tanggal : ..............`,
 ``,
@@ -842,13 +858,14 @@ function genAll(){
 /* ===================== NAVIGASI & SIMPAN ===================== */
 function toRPP(){
   const r=['satuan','guru','kepsek','tahun','tema','alokasi'].filter(k=>!has(S.idt[k]));
+  if(S.idt.mapel==='Lainnya'&&!has(S.idt.mapelLain)){$('#idErr').textContent='Isi nama mata pelajaran pada kolom "Nama Mata Pelajaran (Lainnya)".';return}
   if(r.length||!has(S.idt.pertemuan)){$('#idErr').textContent='Lengkapi data wajib: Satuan Pendidikan, Nama Guru, Kepala Sekolah, Tahun Ajaran, Tema, Alokasi Waktu, dan Jumlah Pertemuan.';return}
   $('#idErr').textContent='';
   if(!has(S.ident.peserta)&&!has(S.ident.materi))genIdent(false);
   show('rpp');
 }
 async function save(){
-  const r=await api('save',{...auth(),id:S.uid,judul:`${S.idt.mapel} — ${S.idt.tema} (Kelas ${ROM[+S.idt.kelas]})`,data:S});
+  const r=await api('save',{...auth(),id:S.uid,judul:`${mpNama()} — ${S.idt.tema} (Kelas ${ROM[+S.idt.kelas]})`,data:S});
   if(r.ok){dirty=false;toast('✔ Tersimpan');persistDraft()}else toast(r.msg||'Gagal menyimpan');
 }
 async function loadList(){
@@ -887,7 +904,7 @@ function exportDoc(){
   const css='body{font-family:"Times New Roman";font-size:12pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #000;padding:4px;vertical-align:top}th{background:#e6f2f0}.shd{background:#0f766e;color:#fff;font-weight:bold;padding:4px}h1{text-align:center;font-size:16pt}.sub{text-align:center;font-weight:bold}.ttd{width:100%}';
   const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>'+css+'</style></head><body>'+clone.innerHTML+'</body></html>';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',html],{type:'application/msword'}));
-  a.download=('RPM_'+S.idt.mapel+'_'+S.idt.tema).replace(/[^\w\-]+/g,'_')+'.doc';a.click();toast('File Word diunduh');
+  a.download=('RPM_'+mpNama()+'_'+S.idt.tema).replace(/[^\w\-]+/g,'_')+'.doc';a.click();toast('File Word diunduh');
 }
 
 /* ===================== INISIALISASI ===================== */
