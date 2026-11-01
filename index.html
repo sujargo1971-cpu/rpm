@@ -90,6 +90,19 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
  tr{page-break-inside:avoid}
  @page{size:A4;margin:16mm}
 }
+.logo img{width:100%;height:100%;object-fit:contain;border-radius:10px}
+.logo{overflow:hidden}
+.page .card+.card{margin-top:16px}
+.note2{background:#fffbeb;border:1px solid #fde68a;color:var(--warn);padding:10px 14px;border-radius:10px;margin-bottom:16px;font-size:14px}
+.logoPrev{width:110px;height:110px;border:1px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;background:#fafdfc;overflow:hidden;text-align:center;padding:6px}
+.logoPrev img{max-width:100%;max-height:100%;object-fit:contain}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px 8px;text-align:left;vertical-align:middle}
+.tbl th{background:#f1f7f6;color:#334155;font-size:13px}
+.tbl .acts{white-space:nowrap}
+.tbl .acts button{padding:4px 10px;font-size:13px;margin-right:4px}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.pill.on{background:#dcfce7;color:#166534}.pill.off{background:#fee2e2;color:#991b1b}
 </style>
 </head>
 <body>
@@ -98,23 +111,88 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 <div id="v-login" class="view on">
  <div class="loginwrap">
   <div class="card logincard">
-   <div class="logo">🌱</div>
+   <div class="logo"><span id="loginLogoEmoji">🌱</span><img id="loginLogo" alt="Logo sekolah" style="display:none"></div>
    <h1 style="font-size:22px;color:var(--g)">RENCANA PEMBELAJARAN MENDALAM</h1>
    <p class="hint" style="margin:4px 0 0">Susun RPP berkesadaran, bermakna, dan menggembirakan.</p>
-   <div class="tabs"><button id="tabIn" class="on" onclick="tab('in')">Masuk</button><button id="tabUp" onclick="tab('up')">Daftar Guru</button></div>
-   <div class="f" id="fNama" style="display:none"><label>Nama Lengkap Guru</label><input id="lNama" autocomplete="name"></div>
-   <div class="f"><label>Username</label><input id="lUser" autocomplete="username"></div>
+   <div class="f" style="margin-top:18px"><label>Masuk sebagai</label>
+    <div class="tabs" style="margin:0"><button id="rGuru" class="on" onclick="setRole('guru')">👩‍🏫 Guru</button><button id="rAdmin" onclick="setRole('admin')">🛠 Admin</button></div>
+   </div>
+   <div class="f"><label>Username</label><input id="lUser" autocomplete="username" placeholder="Username dari admin sekolah"></div>
    <div class="f"><label>Kata Sandi</label><input id="lPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
-   <div class="f" id="fKode" style="display:none"><label>Kode Pendaftaran (jika diminta sekolah)</label><input id="lKode"></div>
    <button style="width:100%" id="btnAuth" onclick="doAuth()">Masuk</button>
    <div class="err" id="lErr"></div>
-   <details>
-    <summary>Pengaturan Database (Google Sheets)</summary>
-    <div class="f" style="margin-top:8px"><label>URL Web App Apps Script (berakhiran /exec)</label><input id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
-    <button class="sec" onclick="saveCfg()">Simpan &amp; Uji Koneksi</button>
-    <p class="hint" id="cfgInfo"></p>
-    <p class="hint">Jika URL dikosongkan, aplikasi berjalan dalam <b>mode lokal</b> (data tersimpan di peramban ini saja) sehingga bisa dicoba tanpa Google Sheets.</p>
-   </details>
+   <p class="hint" id="lInfo" style="margin:10px 0 0">Akun guru dibuat oleh admin sekolah. Hubungi admin bila belum memiliki username dan kata sandi.</p>
+  </div>
+ </div>
+</div>
+
+<!-- ============ ADMIN ============ -->
+<div id="v-admin" class="view">
+ <div class="bar"><h2>🛠 Halaman Admin — Rencana Pembelajaran Mendalam</h2><span id="admWho"></span><button onclick="logout()">Keluar</button></div>
+ <div class="page">
+  <div class="note2" id="admWarn" style="display:none">⚠ Anda masih memakai kata sandi bawaan (<b>admin123</b>). Segera ganti pada bagian “Akun Admin” di bawah.</div>
+
+  <div class="card">
+   <h2 style="color:var(--g);margin-bottom:4px">Logo Sekolah</h2>
+   <p class="hint" style="margin-top:0">Logo tampil di halaman masuk dan di kop RPP (cetak, PDF, Word).</p>
+   <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <div class="logoPrev"><img id="admLogoPrev" alt="Logo" style="display:none"><span id="admLogoNone" class="hint">Belum ada logo</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+     <button onclick="$('#logoFile').click()">🖼 Ganti Logo</button>
+     <button class="del" style="padding:9px 14px;font-size:14px" onclick="clearLogo()">Hapus Logo</button>
+    </div>
+    <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="pickLogo(event)">
+   </div>
+   <p class="hint">Format PNG/JPG. Gambar otomatis diperkecil agar muat disimpan.</p>
+  </div>
+
+  <div class="card">
+   <h2 style="color:var(--g);margin-bottom:4px">Akun Guru</h2>
+   <p class="hint" style="margin-top:0">Guru hanya dapat masuk dengan username dan kata sandi yang dibuat di sini.</p>
+   <div class="grid">
+    <div><label>Nama Lengkap Guru</label><input id="gNama"></div>
+    <div><label>NIP (opsional)</label><input id="gNip"></div>
+    <div><label>Username <span class="hint" id="gUserHint">(huruf kecil/angka, tanpa spasi)</span></label><input id="gUser" autocapitalize="none"></div>
+    <div><label>Kata Sandi <span class="hint" id="gPassHint"></span></label><input id="gPass" type="text" autocomplete="off" placeholder="mis. guru2026"></div>
+    <div class="full"><label style="display:flex;gap:8px;align-items:center;font-weight:normal"><input type="checkbox" id="gAktif" checked style="width:auto"> Akun aktif (dapat masuk)</label></div>
+   </div>
+   <div class="err" id="gErr"></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"><button id="gBtn" onclick="saveGuru()">+ Tambah Guru</button><button class="sec" id="gCancel" style="display:none" onclick="resetGuruForm()">Batal Edit</button></div>
+   <div style="overflow-x:auto;margin-top:14px">
+    <table class="tbl"><thead><tr><th>Nama</th><th>Username</th><th>NIP</th><th>Status</th><th>RPP</th><th>Aksi</th></tr></thead><tbody id="gBody"><tr><td colspan="6" class="hint">Memuat…</td></tr></tbody></table>
+   </div>
+  </div>
+
+  <div class="card">
+   <h2 style="color:var(--g);margin-bottom:4px">Database &amp; Sinkronisasi (Google Sheets)</h2>
+   <p class="hint" style="margin-top:0" id="dbStatus"></p>
+   <div class="f"><label>URL Web App Apps Script (berakhiran /exec)</label><input id="dbUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="sec" onclick="dbTest()">Uji Koneksi</button>
+    <button onclick="dbSave()">Simpan &amp; Gunakan</button>
+   </div>
+   <div class="hint" id="dbMsg" style="margin-top:6px"></div>
+   <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="sec" onclick="pullData()">⬇ Tarik Data (unduh cadangan JSON)</button>
+    <button class="sec" onclick="pushLocal()">⬆ Kirim Data Lokal ke Google Sheets</button>
+    <button class="sec" onclick="admLoad()">🔄 Muat Ulang Daftar</button>
+   </div>
+   <div class="hint" id="syncMsg" style="margin-top:6px"></div>
+   <div class="f" style="margin-top:14px"><label>Tautan untuk guru (sudah memuat alamat database)</label>
+    <div style="display:flex;gap:8px"><input id="dbLink" readonly><button class="sec" onclick="copyLink()">Salin</button></div>
+    <p class="hint">Bagikan tautan ini setelah file index.html di-hosting (mis. GitHub Pages). Atau tempel URL pada konstanta <code>DEFAULT_URL</code> di dalam index.html agar semua perangkat otomatis terhubung.</p>
+   </div>
+  </div>
+
+  <div class="card">
+   <h2 style="color:var(--g);margin-bottom:4px">Akun Admin</h2>
+   <div class="grid">
+    <div><label>Kata Sandi Baru</label><input id="aPass" type="password" autocomplete="new-password"></div>
+    <div><label>Ulangi Kata Sandi Baru</label><input id="aPass2" type="password" autocomplete="new-password"></div>
+   </div>
+   <div class="err" id="aErr"></div>
+   <button onclick="changeAdminPass()">Ganti Kata Sandi Admin</button>
   </div>
  </div>
 </div>
@@ -164,8 +242,7 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
  </div>
 
  <div class="sheet" id="doc">
-  <h1>RENCANA PELAKSANAAN PEMBELAJARAN</h1>
-  <div class="sub">PEMBELAJARAN MENDALAM</div>
+  <table style="border:none;border-bottom:3px double #000;margin:0 0 12px"><tr><td style="border:none;width:90px;text-align:center;vertical-align:middle"><img id="docLogo" alt="Logo" width="76" height="76" style="width:76px;height:76px;object-fit:contain;display:none"></td><td style="border:none;text-align:center;vertical-align:middle"><h1>RENCANA PELAKSANAAN PEMBELAJARAN</h1><div class="sub" style="margin:2px 0 2px">PEMBELAJARAN MENDALAM</div><div style="font-weight:bold" data-v="idt.satuan"></div></td><td style="border:none;width:90px"></td></tr></table>
   <table>
    <tr><td class="lab">Satuan Pendidikan</td><td data-v="idt.satuan"></td><td class="lab">Kelas / Semester</td><td><span data-v="kelasRomawi"></span> / <span data-v="idt.semester"></span></td></tr>
    <tr><td class="lab">Mata Pelajaran</td><td data-v="idt.mapel"></td><td class="lab">Tahun Ajaran</td><td data-v="idt.tahun"></td></tr>
@@ -256,8 +333,9 @@ details{margin-top:14px;font-size:14px}summary{cursor:pointer;color:var(--g);fon
 
 <script>
 /* ===================== KONFIGURASI ===================== */
-// Tempel URL Web App Apps Script Anda di sini (atau lewat menu "Pengaturan Database" di halaman login)
-const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbxx3mi-XSD_JQb_sh0kHmIIBhU8fYyk5xppajizXner92TqTFkmm7IZQAIB3ULooaGu/exec';
+// Tempel URL Web App Apps Script di sini agar semua perangkat otomatis terhubung ke database.
+// Alternatif: admin mengisinya di Halaman Admin > Database & Sinkronisasi.
+const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbykA1aqG3rspyjsMwmOHTfjSJeWf_C-hzJcAeSM5Bs_FqneQ8e3C1mp5cP_v4C9-_fI/exec';
 
 /* ===================== UTIL ===================== */
 const $ = s => document.querySelector(s);
@@ -278,71 +356,241 @@ async function sha(s){
 const ROM=['','I','II','III','IV','V','VI'];
 
 /* ===================== API (Google Sheets / lokal) ===================== */
+let LOGO='';
+let ROLE='guru';
+const LS=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
+const LSset=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const auth=()=>({role:USER.role,username:USER.username,hash:USER.hash});
+
 async function api(action,payload={}){
   if(!API) return localApi(action,payload);
   try{
     const r=await fetch(API,{method:'POST',body:JSON.stringify({action,...payload})});
     return await r.json();
-  }catch(e){return {ok:false,msg:'Tidak dapat terhubung ke Google Sheets. Periksa URL dan koneksi internet.'}}
+  }catch(e){return {ok:false,msg:'Tidak dapat terhubung ke database Google Sheets. Periksa koneksi internet atau hubungi admin.'}}
 }
-function localApi(action,d){
-  const users=JSON.parse(localStorage.getItem('rpm_users')||'{}');
-  let rpps=JSON.parse(localStorage.getItem('rpm_rpps')||'[]');
+// Mode lokal (uji coba tanpa Google Sheets): data di peramban ini saja
+async function localApi(action,d){
+  let admin=LS('rpm_admin',null);
+  if(!admin){admin={username:'admin',hash:await sha('admin::admin123')};LSset('rpm_admin',admin)}
+  if(action==='cfg')return{ok:true,logo:localStorage.getItem('rpm_logo')||''};
   const u=(d.username||'').toLowerCase().trim();
-  if(action==='register'){
-    if(users[u])return{ok:false,msg:'Username sudah dipakai.'};
-    users[u]={nama:d.nama,hash:d.hash};localStorage.setItem('rpm_users',JSON.stringify(users));return{ok:true,name:d.nama};
+  const users=LS('rpm_users',{});
+  let rpps=LS('rpm_rpps',[]);
+  if(d.role==='admin'){
+    if(u!==admin.username||d.hash!==admin.hash)return{ok:false,msg:'Username atau kata sandi admin salah.'};
+    switch(action){
+      case 'login':return{ok:true,name:'Administrator'};
+      case 'g_list':return{ok:true,list:Object.entries(users).map(([un,x])=>({username:un,nama:x.nama,nip:x.nip||'',aktif:x.aktif!==false,rpp:rpps.filter(r=>r.username===un).length}))};
+      case 'g_save':{
+        const g=d.guru||{},gu=(g.username||'').toLowerCase().trim(),ex=users[gu];
+        if(!gu||!g.nama)return{ok:false,msg:'Nama dan username wajib diisi.'};
+        if(g.isNew&&ex)return{ok:false,msg:'Username sudah dipakai.'};
+        if(!ex&&!g.hash)return{ok:false,msg:'Kata sandi wajib diisi untuk akun baru.'};
+        users[gu]={nama:g.nama,nip:g.nip||'',aktif:g.aktif!==false,hash:g.hash||ex.hash};LSset('rpm_users',users);return{ok:true};
+      }
+      case 'g_del':delete users[(d.target||'').toLowerCase()];LSset('rpm_users',users);return{ok:true};
+      case 'a_pass':if(!d.newHash)return{ok:false,msg:'Kata sandi baru kosong.'};admin.hash=d.newHash;LSset('rpm_admin',admin);return{ok:true};
+      case 'logo_set':if(d.logo)localStorage.setItem('rpm_logo',d.logo);else localStorage.removeItem('rpm_logo');return{ok:true};
+      case 'export':return{ok:true,guru:Object.entries(users).map(([un,x])=>({username:un,...x})),rpp:rpps,logo:localStorage.getItem('rpm_logo')||''};
+    }
+    return{ok:false,msg:'Aksi tidak dikenal.'};
   }
-  if(!users[u]||users[u].hash!==d.hash)return{ok:false,msg:'Username atau kata sandi salah.'};
-  if(action==='login')return{ok:true,name:users[u].nama};
+  const x=users[u];
+  if(!x||x.hash!==d.hash)return{ok:false,msg:'Username atau kata sandi salah. Akun guru dibuat oleh admin.'};
+  if(x.aktif===false)return{ok:false,msg:'Akun Anda dinonaktifkan. Hubungi admin sekolah.'};
+  if(action==='login')return{ok:true,name:x.nama,nip:x.nip||''};
   if(action==='list')return{ok:true,list:rpps.filter(r=>r.username===u).map(r=>({id:r.id,judul:r.judul,updated:r.updated})).reverse()};
   if(action==='get'){const r=rpps.find(r=>r.id===d.id&&r.username===u);return r?{ok:true,data:r.data}:{ok:false,msg:'Tidak ditemukan'}}
   if(action==='save'){
     const i=rpps.findIndex(r=>r.id===d.id&&r.username===u);
     const rec={id:d.id,username:u,judul:d.judul,updated:new Date().toISOString(),data:d.data};
     if(i>=0)rpps[i]=rec;else rpps.push(rec);
-    localStorage.setItem('rpm_rpps',JSON.stringify(rpps));return{ok:true};
+    LSset('rpm_rpps',rpps);return{ok:true};
   }
-  if(action==='del'){rpps=rpps.filter(r=>!(r.id===d.id&&r.username===u));localStorage.setItem('rpm_rpps',JSON.stringify(rpps));return{ok:true}}
+  if(action==='del'){rpps=rpps.filter(r=>!(r.id===d.id&&r.username===u));LSset('rpm_rpps',rpps);return{ok:true}}
   return{ok:false,msg:'Aksi tidak dikenal'};
 }
-const auth=()=>({username:USER.username,hash:USER.hash});
+
+/* ===================== LOGO ===================== */
+function applyLogo(){
+  const on=!!LOGO;
+  [['#loginLogo','block'],['#docLogo','block'],['#admLogoPrev','block']].forEach(([s,disp])=>{
+    const el=$(s);if(!el)return;
+    if(on){el.src=LOGO;el.style.display=disp}else{el.removeAttribute('src');el.style.display='none'}
+  });
+  $('#loginLogoEmoji').style.display=on?'none':'';
+  $('#admLogoNone').style.display=on?'none':'';
+  $('.logo').style.background=on?'transparent':'';
+}
+async function loadLogo(){
+  LOGO=localStorage.getItem('rpm_logo_cache')||'';applyLogo();
+  const r=await api('cfg');
+  if(r&&r.ok){LOGO=r.logo||'';applyLogo();try{localStorage.setItem('rpm_logo_cache',LOGO)}catch(e){}}
+}
+function shrink(img){
+  for(const max of [220,160,110]){
+    const sc=Math.min(1,max/Math.max(img.width,img.height)),w=Math.max(1,Math.round(img.width*sc)),h=Math.max(1,Math.round(img.height*sc));
+    const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);
+    let s=c.toDataURL('image/png');if(s.length<=44000)return s;
+    x.globalCompositeOperation='destination-over';x.fillStyle='#fff';x.fillRect(0,0,w,h);
+    s=c.toDataURL('image/jpeg',.82);if(s.length<=44000)return s;
+  }
+  return '';
+}
+function pickLogo(ev){
+  const f=ev.target.files[0];ev.target.value='';
+  if(!f)return;
+  if(!/^image\//.test(f.type)){toast('Pilih file gambar (PNG/JPG).');return}
+  const img=new Image(),url=URL.createObjectURL(f);
+  img.onload=async()=>{
+    URL.revokeObjectURL(url);
+    const s=shrink(img);
+    if(!s){toast('Gambar terlalu rumit. Gunakan logo yang lebih sederhana.');return}
+    const r=await api('logo_set',{...auth(),logo:s});
+    if(r.ok){LOGO=s;try{localStorage.setItem('rpm_logo_cache',s)}catch(e){}applyLogo();toast('✔ Logo diperbarui')}else toast(r.msg||'Gagal menyimpan logo');
+  };
+  img.onerror=()=>toast('Gambar tidak dapat dibaca.');
+  img.src=url;
+}
+async function clearLogo(){
+  if(!LOGO||!confirm('Hapus logo sekolah?'))return;
+  const r=await api('logo_set',{...auth(),logo:''});
+  if(r.ok){LOGO='';try{localStorage.removeItem('rpm_logo_cache')}catch(e){}applyLogo();toast('Logo dihapus')}else toast(r.msg||'Gagal');
+}
 
 /* ===================== LOGIN ===================== */
-let mode='in';
-function tab(m){
-  mode=m;$('#tabIn').classList.toggle('on',m==='in');$('#tabUp').classList.toggle('on',m==='up');
-  $('#fNama').style.display=m==='up'?'':'none';$('#fKode').style.display=m==='up'?'':'none';
-  $('#btnAuth').textContent=m==='in'?'Masuk':'Daftar & Masuk';$('#lErr').textContent='';
+function setRole(r){
+  ROLE=r;$('#rGuru').classList.toggle('on',r==='guru');$('#rAdmin').classList.toggle('on',r==='admin');
+  $('#lUser').placeholder=r==='admin'?'Username admin':'Username dari admin sekolah';
+  $('#lInfo').style.display=r==='guru'?'':'none';$('#lErr').textContent='';
 }
 async function doAuth(){
   const username=$('#lUser').value.trim().toLowerCase(),pass=$('#lPass').value;
   if(!username||!pass){$('#lErr').textContent='Username dan kata sandi wajib diisi.';return}
   const hash=await sha(username+'::'+pass);
   $('#btnAuth').disabled=true;$('#lErr').textContent='Memproses…';
-  let r;
-  if(mode==='up'){
-    const nama=$('#lNama').value.trim();
-    if(!nama){$('#lErr').textContent='Nama lengkap wajib diisi.';$('#btnAuth').disabled=false;return}
-    r=await api('register',{username,hash,nama,kode:$('#lKode').value.trim()});
-  }else r=await api('login',{username,hash});
+  const r=await api('login',{role:ROLE,username,hash});
   $('#btnAuth').disabled=false;
-  if(!r.ok){$('#lErr').textContent=r.msg||'Gagal.';return}
-  USER={username,hash,name:r.name};
+  if(!r.ok){$('#lErr').textContent=r.msg||'Gagal masuk.';return}
+  $('#lErr').textContent='';$('#lPass').value='';
+  USER={role:ROLE,username,hash,name:r.name,nip:r.nip||''};
   sessionStorage.setItem('rpm_user',JSON.stringify(USER));
   enter();
 }
-function saveCfg(){
-  API=$('#cfgUrl').value.trim();localStorage.setItem('rpm_url',API);
-  if(!API){$('#cfgInfo').textContent='Mode lokal aktif.';return}
-  $('#cfgInfo').textContent='Menguji…';
-  fetch(API).then(r=>r.json()).then(j=>{$('#cfgInfo').innerHTML=j.ok?'<span class="ok">✔ Terhubung ke Google Sheets.</span>':'Respons tidak sesuai.'}).catch(()=>{$('#cfgInfo').textContent='Gagal terhubung. Pastikan deploy Web App: akses "Siapa saja".'});
-}
-function logout(){sessionStorage.removeItem('rpm_user');USER=null;S=null;show('login')}
-
+function logout(){sessionStorage.removeItem('rpm_user');USER=null;S=null;setRole('guru');show('login')}
 function show(v){
   $$('.view').forEach(x=>x.classList.remove('on'));$('#v-'+v).classList.add('on');window.scrollTo(0,0);
   if(v==='rpp'||v==='id'){fillAll()}
+  applyLogo();
+}
+function enter(){
+  if(USER.role==='admin'){$('#admWho').textContent='Admin: '+USER.username;show('admin');admInit();return}
+  $('#whoami').textContent='Guru: '+USER.name;
+  const d=localStorage.getItem('rpm_draft_'+USER.username);
+  S=newRPP();
+  if(d){try{S=Object.assign(newRPP(),JSON.parse(d))}catch(e){}}
+  if(!has(S.idt.guru))S.idt.guru=USER.name;
+  if(!has(S.idt.nipGuru)&&USER.nip)S.idt.nipGuru=USER.nip;
+  show('id');loadList();
+}
+
+/* ===================== ADMIN ===================== */
+let GURU=[],EDIT=null;
+async function admInit(){
+  resetGuruForm();dbRender();admLoad();
+  $('#admWarn').style.display=(USER.hash===await sha('admin::admin123'))?'':'none';
+}
+async function admLoad(){
+  $('#gBody').innerHTML='<tr><td colspan="6" class="hint">Memuat…</td></tr>';
+  const r=await api('g_list',auth());
+  if(!r.ok){$('#gBody').innerHTML='<tr><td colspan="6" class="err">'+esc(r.msg||'Gagal memuat')+'</td></tr>';return}
+  GURU=r.list;
+  $('#gBody').innerHTML=GURU.length?GURU.map(g=>`<tr><td>${esc(g.nama)}</td><td>${esc(g.username)}</td><td>${esc(g.nip||'-')}</td><td><span class="pill ${g.aktif?'on':'off'}">${g.aktif?'Aktif':'Nonaktif'}</span></td><td>${g.rpp||0}</td><td class="acts"><button class="sec" data-a="edit" data-u="${esc(g.username)}">Edit</button><button class="sec" data-a="tog" data-u="${esc(g.username)}">${g.aktif?'Nonaktifkan':'Aktifkan'}</button><button class="del" data-a="del" data-u="${esc(g.username)}">Hapus</button></td></tr>`).join(''):'<tr><td colspan="6" class="hint">Belum ada akun guru. Tambahkan di formulir di atas.</td></tr>';
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest&&e.target.closest('#gBody button[data-a]');if(!b)return;
+  const g=GURU.find(x=>x.username===b.dataset.u);if(!g)return;
+  if(b.dataset.a==='edit'){
+    EDIT=g.username;$('#gNama').value=g.nama;$('#gNip').value=g.nip||'';$('#gUser').value=g.username;$('#gUser').disabled=true;
+    $('#gPass').value='';$('#gAktif').checked=g.aktif;$('#gBtn').textContent='💾 Simpan Perubahan';$('#gCancel').style.display='';
+    $('#gPassHint').textContent='(kosongkan jika tidak diganti)';$('#gUserHint').textContent='(tidak dapat diubah)';$('#gNama').focus();$('#gNama').scrollIntoView({behavior:'smooth',block:'center'});
+  }else if(b.dataset.a==='tog'){
+    const r=await api('g_save',{...auth(),guru:{username:g.username,nama:g.nama,nip:g.nip,aktif:!g.aktif,isNew:false}});
+    if(r.ok){toast(g.aktif?'Akun dinonaktifkan':'Akun diaktifkan');admLoad()}else toast(r.msg||'Gagal');
+  }else if(b.dataset.a==='del'){
+    if(!confirm(`Hapus akun "${g.nama}"? RPP milik guru ini tidak ikut dihapus.`))return;
+    const r=await api('g_del',{...auth(),target:g.username});
+    if(r.ok){toast('Akun dihapus');admLoad()}else toast(r.msg||'Gagal');
+  }
+});
+function resetGuruForm(){
+  EDIT=null;['#gNama','#gNip','#gUser','#gPass'].forEach(s=>$(s).value='');$('#gUser').disabled=false;$('#gAktif').checked=true;
+  $('#gBtn').textContent='+ Tambah Guru';$('#gCancel').style.display='none';$('#gErr').textContent='';
+  $('#gPassHint').textContent='';$('#gUserHint').textContent='(huruf kecil/angka, tanpa spasi)';
+}
+async function saveGuru(){
+  const nama=$('#gNama').value.trim(),un=$('#gUser').value.trim().toLowerCase(),pw=$('#gPass').value;
+  const isNew=!EDIT;
+  if(!nama||!un){$('#gErr').textContent='Nama dan username wajib diisi.';return}
+  if(!/^[a-z0-9._-]{3,30}$/.test(un)){$('#gErr').textContent='Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip.';return}
+  if(isNew&&pw.length<4){$('#gErr').textContent='Kata sandi akun baru minimal 4 karakter.';return}
+  if(!isNew&&pw&&pw.length<4){$('#gErr').textContent='Kata sandi minimal 4 karakter.';return}
+  $('#gErr').textContent='';
+  const g={username:un,nama,nip:$('#gNip').value.trim(),aktif:$('#gAktif').checked,isNew};
+  if(pw)g.hash=await sha(un+'::'+pw);
+  const r=await api('g_save',{...auth(),guru:g});
+  if(!r.ok){$('#gErr').textContent=r.msg||'Gagal menyimpan.';return}
+  toast(isNew?'✔ Akun guru ditambahkan':'✔ Perubahan disimpan');resetGuruForm();admLoad();
+}
+async function changeAdminPass(){
+  const p=$('#aPass').value,p2=$('#aPass2').value;
+  if(p.length<6){$('#aErr').textContent='Kata sandi minimal 6 karakter.';return}
+  if(p!==p2){$('#aErr').textContent='Pengulangan kata sandi tidak sama.';return}
+  const newHash=await sha(USER.username+'::'+p);
+  const r=await api('a_pass',{...auth(),newHash});
+  if(!r.ok){$('#aErr').textContent=r.msg||'Gagal.';return}
+  USER.hash=newHash;sessionStorage.setItem('rpm_user',JSON.stringify(USER));
+  $('#aPass').value=$('#aPass2').value='';$('#aErr').textContent='';$('#admWarn').style.display='none';toast('✔ Kata sandi admin diganti');
+}
+function dbRender(){
+  $('#dbUrl').value=API;
+  $('#dbStatus').innerHTML=API?'Status: <b style="color:var(--g)">terhubung ke Google Sheets</b>.':'Status: <b>mode lokal (uji coba)</b> — data hanya tersimpan di peramban ini. Sambungkan ke Google Sheets agar semua guru memakai database yang sama.';
+  $('#dbLink').value=API?location.href.split('?')[0].split('#')[0]+'?api='+encodeURIComponent(API):'(isi URL database terlebih dahulu)';
+  $('#dbMsg').textContent='';$('#syncMsg').textContent='';
+}
+function dbTest(){
+  const u=$('#dbUrl').value.trim();
+  if(!u){$('#dbMsg').textContent='Isi URL terlebih dahulu.';return}
+  $('#dbMsg').textContent='Menguji…';
+  fetch(u).then(r=>r.json()).then(j=>{$('#dbMsg').innerHTML=j.ok?'<span class="ok">✔ Terhubung ke Google Sheets.</span>':'Respons tidak sesuai. Pastikan URL benar.'}).catch(()=>{$('#dbMsg').textContent='Gagal terhubung. Pastikan Web App di-deploy dengan akses "Siapa saja".'});
+}
+function dbSave(){
+  const u=$('#dbUrl').value.trim();
+  if(u&&!/^https:\/\/script\.google\.com\/.+\/exec/.test(u)&&!confirm('URL tidak tampak seperti URL Web App Apps Script (berakhiran /exec). Tetap simpan?'))return;
+  API=u;localStorage.setItem('rpm_url',u);
+  logout();toast('Pengaturan database disimpan. Silakan masuk kembali sebagai admin.');loadLogo();
+}
+function copyLink(){const el=$('#dbLink');el.select();try{navigator.clipboard.writeText(el.value)}catch(e){document.execCommand('copy')}toast('Tautan disalin')}
+async function pullData(){
+  $('#syncMsg').textContent='Menarik data…';
+  const r=await api('export',auth());
+  if(!r.ok){$('#syncMsg').textContent=r.msg||'Gagal menarik data.';return}
+  const blob=new Blob([JSON.stringify({dibuat:new Date().toISOString(),guru:r.guru,rpp:r.rpp,logo:r.logo},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cadangan_rpm_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  $('#syncMsg').textContent=`✔ ${r.guru.length} akun guru dan ${r.rpp.length} RPP ditarik. File cadangan berisi data sandi (hash) — simpan dengan aman.`;
+  admLoad();
+}
+async function pushLocal(){
+  if(!API){$('#syncMsg').textContent='Sambungkan ke Google Sheets terlebih dahulu (isi URL lalu Simpan & Gunakan).';return}
+  const users=LS('rpm_users',{}),rpps=LS('rpm_rpps',[]),logo=localStorage.getItem('rpm_logo')||'';
+  const guru=Object.entries(users).map(([un,x])=>({username:un,...x}));
+  if(!guru.length&&!rpps.length&&!logo){$('#syncMsg').textContent='Tidak ada data lokal di peramban ini.';return}
+  if(!confirm(`Kirim ${guru.length} akun guru, ${rpps.length} RPP${logo?' dan logo':''} dari peramban ini ke Google Sheets? Data yang sudah ada di Sheets tidak ditimpa.`))return;
+  $('#syncMsg').textContent='Mengirim…';
+  const r=await api('import',{...auth(),guru,rpp:rpps,logo});
+  $('#syncMsg').textContent=r.ok?`✔ Ditambahkan: ${r.guru} akun guru, ${r.rpp} RPP${r.logo?', logo':''}.`:(r.msg||'Gagal mengirim data.');
+  if(r.ok)admLoad();
 }
 
 /* ===================== DATA ===================== */
@@ -354,13 +602,6 @@ function newRPP(){
     awal:'',inti:{mem:[],apl:[],ref:[]},penutup:'',
     asesmen:{awal:'',proses:'',akhir:''},ttdTgl:'',
     lamp:{lkpd:[],ind:[],anek:[],anekPetunjuk:'',soal:''}};
-}
-function enter(){
-  $('#whoami').textContent='Guru: '+USER.name;
-  const d=localStorage.getItem('rpm_draft_'+USER.username);
-  S=newRPP();
-  if(d){try{S=Object.assign(newRPP(),JSON.parse(d))}catch(e){}}
-  show('id');loadList();
 }
 function persistDraft(){if(USER&&S)localStorage.setItem('rpm_draft_'+USER.username,JSON.stringify(S))}
 
@@ -636,6 +877,7 @@ function exportDoc(){
     const d=document.createElement('div');d.style.whiteSpace='pre-wrap';d.textContent=o.value;el.replaceWith(d);
   });
   clone.querySelectorAll('.noprint').forEach(e=>e.remove());
+  clone.querySelectorAll('img').forEach(i=>{if(!i.getAttribute('src'))i.remove();else i.style.display='block'});
   clone.querySelectorAll('.pb,.lamp').forEach(e=>e.setAttribute('style','page-break-before:always'));
   clone.querySelectorAll('.dpl').forEach(e=>e.style.display='block');
   const css='body{font-family:"Times New Roman";font-size:12pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #000;padding:4px;vertical-align:top}th{background:#e6f2f0}.shd{background:#0f766e;color:#fff;font-weight:bold;padding:4px}h1{text-align:center;font-size:16pt}.sub{text-align:center;font-weight:bold}.ttd{width:100%}';
@@ -645,11 +887,11 @@ function exportDoc(){
 }
 
 /* ===================== INISIALISASI ===================== */
-$('#cfgUrl').value=API;
-$('#cfgInfo').textContent=API?'Terhubung ke URL yang tersimpan.':'Mode lokal aktif (belum ada URL Google Sheets).';
 (function(){
+  try{const q=new URLSearchParams(location.search).get('api');if(q&&/^https:\/\//.test(q)){API=q;localStorage.setItem('rpm_url',q);history.replaceState(null,'',location.pathname)}}catch(e){}
+  loadLogo();
   const u=sessionStorage.getItem('rpm_user');
-  if(u){try{USER=JSON.parse(u);enter()}catch(e){}}
+  if(u){try{USER=JSON.parse(u);if(USER&&USER.role)enter()}catch(e){}}
 })();
 </script>
 </body>
